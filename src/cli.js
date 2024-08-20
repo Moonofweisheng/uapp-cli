@@ -78,79 +78,9 @@ module.exports = function (inputArgs) {
     return
   }
 
-  if (cmd === 'privacy') {
-    const readline = require('readline/promises')
-    const { stdin: input, stdout: output } = require('process');
-
-    (async () => {
-      const rl = readline.createInterface({ input, output })
-      try {
-        console.log(chalk.yellow('提示: uapp 不承诺协议内容的专业合法性，如您对此有要求，请咨询专业律师起草，并自行替换'))
-        const companyFullName = await rl.question('输入公司全名: ')
-        const companyShortName = await rl.question('输入公司简称: ')
-        const appName = await rl.question('输入APP名字: ')
-        const contactUs = await rl.question('输入联系方式: ')
-
-        let regTplFile = path.resolve('./reg.tpl.md')
-        let privacyTplFile = path.resolve('./privacy.tpl.md')
-        if (!fs.existsSync(regTplFile)) {
-          regTplFile = path.resolve(__dirname, '../uappsdk/templates/privacy/reg.tpl.md')
-        }
-
-        if (!fs.existsSync(privacyTplFile)) {
-          privacyTplFile = path.resolve(__dirname, '../uappsdk/templates/privacy/privacy.tpl.md')
-        }
-
-        [regTplFile, privacyTplFile].map(file => {
-          let content = fs.readFileSync(file, 'utf-8')
-          content = content.replace(/\$COMPANY_FULL\$/g, companyFullName)
-          content = content.replace(/\$COMPANY_SHORT\$/g, companyShortName)
-          content = content.replace(/\$APPNAME\$/g, appName)
-          content = content.replace(/\$CONTACT_US\$/g, contactUs)
-
-          let newFile = file.replace('.tpl.md', '.md').split('/').pop()
-          newFile = path.resolve('./' + newFile)
-          fs.writeFileSync(newFile, content)
-          console.log(chalk.green(newFile))
-        })
-      } catch (err) {
-        console.log(`Error: `, err)
-      } finally {
-        rl.close()
-      }
-    })()
-    return
-  }
-
   let configFile = path.join($G.sdkHomeDir, 'config.json')
   if (fs.existsSync(configFile)) {
     $G.config = JSON.parse(fs.readFileSync(configFile, 'utf-8'))
-  }
-
-  if (!$G.config['hbx.dir'] && process.platform === 'darwin') {
-    $G.config['hbx.dir'] = '/Applications/HBuilderX.app'
-  }
-
-  if (!$G.config['wx.dir']) {
-    if (process.platform === 'darwin') {
-      let settingFile = path.join(require('os').homedir(), 'Library/Application Support/HBuilder X/user/settings.json')
-      if (fs.existsSync(settingFile)) {
-        $G.config['wx.dir'] = require(settingFile)['weApp.devTools.path']
-      }
-
-      if (!$G['wx.dir']) {
-        $G.config['wx.dir'] = '/Applications/wechatwebdevtools.app'
-      }
-    } else if (process.platform === 'win32') {
-      let settingFile = path.join(require('os').homedir(), 'AppData/Roaming/HBuilder X/user/settings.json')
-      if (fs.existsSync(settingFile)) {
-        $G.config['wx.dir'] = require(settingFile)['weApp.devTools.path']
-      }
-
-      if (!$G.config['wx.dir']) {
-        $G.config['wx.dir'] = 'C:\\Program Files (x86)\\Tencent\\微信web开发者工具'
-      }
-    }
   }
 
   if (cmd === 'config') {
@@ -166,14 +96,6 @@ module.exports = function (inputArgs) {
     }
 
     return fs.writeFileSync(path.join($G.sdkHomeDir, 'config.json'), JSON.stringify($G.config, null, 2))
-  }
-
-  if (cmd === 'hbx') {
-    return runHBuilderXCli(args.argv.original.slice(1))
-  }
-
-  if (cmd === 'wx') {
-    return runWeixinCli(args.argv.original.slice(1))
   }
 
   // 如果当面目录不存在 manifest.json，尝试使用 ../src/manifest.json
@@ -256,6 +178,7 @@ module.exports = function (inputArgs) {
     return
   }
 
+  // 如果是webapp
   if ($G.projectType === 'webapp' && cmd !== 'run') {
     return console.log('webapp 不支持命令 uapp ' + cmd)
   }
@@ -383,7 +306,7 @@ module.exports = function (inputArgs) {
         return console.log('命令无效，webapp 仅支持 uapp run build:xxx / dev:xxx')
       }
 
-      return buildWebApp(args.argv.remain[1])
+      return buildWebApp('build:app-' + (Number($G.manifest.vueVersion) === 3 ? $G.projectType : 'plus'))
     }
 
     if (!['build', 'build:dev', 'build:aab'].includes(args.argv.remain[1])) {
@@ -413,7 +336,7 @@ module.exports = function (inputArgs) {
       let buildOutFile = path.join($G.appDir, 'app/build/outputs/', outFileMap[buildType])
 
       if (buildType === 'build:dev' && args.copy) {
-        sync(buildOutFile, path.join($G.webAppDir, 'unpackage/debug/android_debug.apk'), { delete: true })
+        sync(buildOutFile, path.join($G.webAppDir, 'dist/debug/android_debug.apk'), { delete: true })
       }
 
       console.log('\n编译成功，安装包位置: ')
@@ -487,20 +410,6 @@ function checkForUpdates() {
       throw e
     }
   }
-}
-
-function getFiles(dir, files_) {
-  files_ = files_ || []
-  const files = fs.readdirSync(dir)
-  for (let i in files) {
-    const name = path.join(dir, files[i])
-    if (fs.statSync(name).isDirectory()) {
-      getFiles(name, files_)
-    } else {
-      files_.push(name)
-    }
-  }
-  return files_
 }
 
 function checkManifest() {
@@ -857,95 +766,17 @@ function printAndroidKeyInfo(gradle) {
 }
 
 function buildWebApp(buildArg) {
-  let hbxDir = $G.config['hbx.dir']
-  if (!fs.existsSync(hbxDir)) {
-    console.log('找不到 HBuilderX 安装路径')
-    console.log('配置 HBuilderX 环境命令: ' + chalk.yellow('uapp config hbx.dir [path/to/HBuilderX]'))
-    process.exit()
-  }
-
-  if (process.platform === 'darwin' && fs.existsSync(path.join(hbxDir, 'Contents/HBuilderX'))) {
-    hbxDir = path.join(hbxDir, 'Contents/HBuilderX')
-  }
-
-  let node = path.join(hbxDir, 'plugins/node/node')
-  if (process.platform === 'win32') {
-    node = node + '.exe'
-  }
-
-  if (!fs.existsSync(node)) {
-    node = $G.config.node
-  }
-
-  if (!node || !fs.existsSync(node)) {
-    console.log('找不到 node 位置: ' + node)
-    console.log('配置 node: ' + chalk.yellow('uapp config node [path/to/node]'))
-    process.exit()
-  }
-
-  let flag = buildArg.startsWith('build') ? 'build' : ''
-  let isWeixin = buildArg.endsWith('mp-weixin')
-
-  let vue = 'vue2'
-  let spawnArgs = []
-  let spawnOpts = flag ? { stdio: 'inherit' } : {}
-  let buildScript
-
-  if (Number($G.manifest.vueVersion) === 3) {
-    vue = 'vue3'
-    buildScript = path.join(hbxDir, 'plugins/uniapp-cli-vite/node_modules/@dcloudio/vite-plugin-uni/bin/uni.js')
-    spawnArgs = [buildScript, flag, '-p', buildArg.split(':')[1]]
-  } else {
-    buildScript = path.join(hbxDir, 'plugins/uniapp-cli/bin/uniapp-cli.js')
-    process.env.NODE_PATH = path.join(hbxDir, 'plugins/uniapp-cli/node_modules')
-    spawnOpts.cwd = process.env.VUE_CLI_CONTEXT = process.env.UNI_CLI_CONTEXT = path.join(hbxDir, 'plugins/uniapp-cli')
-    process.env.UNI_PLATFORM = buildArg.split(':')[1]
-    spawnArgs = [buildScript]
-  }
-
-  if (!fs.existsSync(buildScript)) {
-    console.log(chalk.yellow(`HBuilderX 需要安装插件 => uni-app (${vue}) 编译器`))
-    process.exit()
-  }
-
   let buildOutDir = $G.args.out
   if (!buildOutDir) {
     buildOutDir = getDefaultBuildOut(buildArg)
   }
 
-  process.env.HX_Version = '3.x'
-  process.env.HX_APP_ROOT = process.env.APP_ROOT = hbxDir
   process.env.UNI_INPUT_DIR = $G.webAppDir
   process.env.UNI_OUTPUT_DIR = buildOutDir
   process.env.NODE_ENV = flag === 'build' ? 'production' : 'development'
 
-  if (flag) {
-    spawnSync(node, spawnArgs, spawnOpts)
-    console.log('资源输出位置: ' + chalk.green(buildOutDir))
-    if ($G.args.open && isWeixin) {
-      runWeixinCli(['open', '--project', buildOutDir])
-    }
-  } else {
-    let p = spawn(node, spawnArgs, spawnOpts)
-    let first = true
-    p.stdout.on('data', data => {
-      data = data.toString()
-      process.stdout.write(data)
-
-      if ($G.args.open &&
-        isWeixin &&
-        first &&
-        (data.includes('Watching for changes') || data.includes('ready in '))
-      ) {
-        first = false
-        runWeixinCli(['open', '--project', buildOutDir])
-      }
-    })
-
-    p.stderr.on('data', data => {
-      process.stderr.write(data.toString())
-    })
-  }
+  spawnSync(`npm run ${buildArg}`)
+  console.log('资源输出位置: ' + chalk.green(buildOutDir))
 }
 
 function getDefaultBuildOut(buildArg) {
@@ -953,7 +784,7 @@ function getDefaultBuildOut(buildArg) {
   let relativeDir = ''
 
   if (buildArg.startsWith('build:app')) {
-    relativeDir = 'unpackage/resources/' + $G.manifest.appid + '/www'
+    relativeDir = 'dist/' + $G.manifest.appid + '/www'
   } else if (isDev) {
     relativeDir = 'unpackage/dist/dev/' + buildArg.split(':')[1]
   } else {
@@ -961,47 +792,6 @@ function getDefaultBuildOut(buildArg) {
   }
 
   return path.join($G.webAppDir, relativeDir)
-}
-
-function runHBuilderXCli(args) {
-  let cli = 'cli'
-  if (process.platform === 'darwin') {
-    if (fs.existsSync(path.join($G.config['hbx.dir'], '../MacOS/cli'))) {
-      cli = '../MacOS/cli'
-    } else {
-      cli = 'Contents/MacOS/cli'
-    }
-  }
-  cli = path.join($G.config['hbx.dir'], cli)
-
-  if (process.platform === 'win32') {
-    cli = cli + '.exe'
-  }
-
-  if (!fs.existsSync($G.config['hbx.dir'])) {
-    console.log('找不到 HBuilderX 安装路径')
-    return console.log('配置 HBuilderX 环境命令: ' + chalk.yellow('uapp config hbx.dir [path/to/HBuilderX]'))
-  }
-
-  console.log(cli)
-  return spawnSync(cli, args, { stdio: 'inherit' })
-}
-
-function runWeixinCli(args) {
-  let cli = process.platform === 'darwin' ? 'Contents/MacOS/cli' : 'cli'
-  cli = path.join($G.config['wx.dir'], cli)
-
-  if (process.platform === 'win32') {
-    cli = cli + '.bat'
-  }
-
-  if (!fs.existsSync(($G.config['wx.dir']))) {
-    console.log('找不到微信安装路径')
-    return console.log('配置微信环境命令: ' + chalk.yellow('uapp config wx.dir [path/to/weixin]'))
-  }
-
-  console.log(cli)
-  spawnSync(cli, args, { stdio: 'inherit' })
 }
 
 function clone(url, projectName) {

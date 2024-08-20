@@ -1,7 +1,7 @@
 {
-  "name": "uapp",
+  "name": "uapp-cli",
   "version": "2.3.14",
-  "description": "uapp源自跨平台开发的最佳实践。uapp通过集成 uni-app, electron, tauri，让开发者仅需维护一套代码，就能横扫所有平台。用uapp可以无限制重构一切软件。+作者vx: 28451307",
+  "description": "fork自，uapp源自跨平台开发的最佳实践。uapp通过集成 uni-app, electron, tauri，让开发者仅需维护一套代码，就能横扫所有平台。用uapp可以无限制重构一切软件。",
   "main": "bin/uapp",
   "bin": {
     "uapp": "bin/uapp"
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/uappkit/uapp.git"
+    "url": "git+https://github.com/Moonofweisheng/uapp-cli.git"
   },
   "keywords": [
     "uapp",
@@ -34,9 +34,9 @@
     "node": ">=18"
   },
   "bugs": {
-    "url": "https://github.com/uappkit/uapp/issues"
+    "url": "https://github.com/Moonofweisheng/uapp-cli/issues"
   },
-  "homepage": "https://github.com/uappkit/uapp#readme",
+  "homepage": "https://github.com/Moonofweisheng/uapp-cli#readme",
   "directories": {
     "doc": "doc"
   },

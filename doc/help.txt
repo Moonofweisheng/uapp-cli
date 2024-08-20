@@ -1,33 +1,18 @@
 
 uapp 通用命令🔥
 
-  - 当前目录下生成注册协议, 隐私协议
-    uapp privacy
-
   - 新建工程
-    uapp new demo1    # 使用 uapp-webapp 模版新建工程
     uapp add android  # 当前目录下创建 android 工程
     uapp add ios      # 当前目录下创建 ios 工程
 
   - webapp 工程下编译命令
-    uapp run dev:h5
-    uapp run build:mp-weixin --open # 参数 open 表示使用微信开发者工具打开
+    uapp run dev:app-plus # vue2
+    uapp run build:app-android # vue3
 
   - app 工程下命令
-    uapp run build:dev              # 编译并发布自定义基座到 HBuilderX 下
+    uapp run build:dev              # 编译并发布自定义基座
     uapp run build                  # 编译 release 发布包, iOS 直接用 Xcode
     uapp run build:aab              # android 下打包为 aab 的格式
-
-  - 配置 HBuilderX 和 微信安装环境
-    uapp config hbx.dir "C:\Program Files (x86)\HBuilderX"
-    uapp config wx.dir "C:\Program Files (x86)\Tencent\微信web开发者工具"
-
-  - 直接用微信开发者工具内置的 cli
-    uapp wx help
-
-  - 直接用 HBuilderX 内置的 cli
-    uapp hbx open
-    uapp hbx help
 
 app 工程下命令:
 
