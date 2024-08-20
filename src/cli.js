@@ -766,6 +766,7 @@ function printAndroidKeyInfo(gradle) {
 }
 
 function buildWebApp(buildArg) {
+  let flag = buildArg.startsWith('build') ? 'build' : ''
   let buildOutDir = $G.args.out
   if (!buildOutDir) {
     buildOutDir = getDefaultBuildOut(buildArg)
