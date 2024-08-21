@@ -468,6 +468,8 @@ function prepareCommand() {
   }
 
   let compiledDir = path.join($G.webAppDir, 'dist/build/app-plus')
+  console.log(compiledDir,'compiledDir');
+  
   if (!pathExistsSync(compiledDir)) {
     console.log(chalk.red('找不到本地App打包资源'))
     console.log('请使用 HBuilderX => 发行(菜单) => 原生App本地打包 => 生成本地打包App资源')
