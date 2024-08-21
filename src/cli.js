@@ -776,7 +776,8 @@ function buildWebApp(buildArg) {
   process.env.UNI_OUTPUT_DIR = buildOutDir
   process.env.NODE_ENV = flag === 'build' ? 'production' : 'development'
 
-  spawnSync(`npm run ${buildArg}`)
+  // spawnSync(`npm run ${buildArg}`)
+  spawnSync('npm', ['run', buildArg], { stdio: 'inherit' });
   console.log('资源输出位置: ' + chalk.green(buildOutDir))
 }
 
