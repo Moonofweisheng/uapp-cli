@@ -467,7 +467,7 @@ function prepareCommand() {
     buildWebApp('build:app-' + (Number($G.manifest.vueVersion) === 3 ? $G.projectType : 'plus'))
   }
 
-  let compiledDir = path.join($G.webAppDir, 'unpackage/resources/', $G.manifest.appid)
+  let compiledDir = path.join($G.webAppDir, 'dist/build/app-plus')
   if (!pathExistsSync(compiledDir)) {
     console.log(chalk.red('找不到本地App打包资源'))
     console.log('请使用 HBuilderX => 发行(菜单) => 原生App本地打包 => 生成本地打包App资源')
@@ -777,7 +777,7 @@ function buildWebApp(buildArg) {
   process.env.NODE_ENV = flag === 'build' ? 'production' : 'development'
 
   // spawnSync(`npm run ${buildArg}`)
-  spawnSync('npm', ['run', buildArg], { stdio: 'inherit' });
+  spawnSync('npm', ['run', buildArg], { stdio: 'inherit'});
   console.log('资源输出位置: ' + chalk.green(buildOutDir))
 }
 
