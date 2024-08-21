@@ -475,8 +475,7 @@ function prepareCommand() {
     console.log('请使用 HBuilderX => 发行(菜单) => 原生App本地打包 => 生成本地打包App资源')
     process.exit()
   }
-
-  let resDir = path.join($G.webAppDir, 'unpackage/res/icons')
+  let resDir = path.join($G.webAppDir, 'res/icons').replace('src','unpackage')
   // 如果没生成过图标目录, 跳过
   if (pathExistsSync(resDir)) {
     if ($G.projectType === 'android') {
