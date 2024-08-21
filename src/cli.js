@@ -356,7 +356,7 @@ module.exports = function (inputArgs) {
       let buildOutFile = path.join($G.appDir, 'app/build/outputs/', outFileMap[buildType])
 
       if (buildType === 'build:dev' && args.copy) {
-        sync(buildOutFile, path.join($G.webAppDir, 'dist/debug/android_debug.apk'), {
+        sync(buildOutFile, path.join($G.webAppDir, 'debug/android_debug.apk').replace('src', 'dist'), {
           delete: true
         })
       }
@@ -496,7 +496,7 @@ function prepareCommand() {
     buildWebApp('build:app-' + (Number($G.manifest.vueVersion) === 3 ? $G.projectType : 'plus'))
   }
 
-  let compiledDir = path.join($G.webAppDir, 'build/app-plus').replace('src', 'dist')
+  let compiledDir = path.join($G.webAppDir, Number($G.manifest.vueVersion) === 3 ? 'build/app' : 'build/app-plus').replace('src', 'dist')
 
   if (!pathExistsSync(compiledDir)) {
     console.log(chalk.red('找不到本地App打包资源'))
@@ -527,12 +527,8 @@ function prepareCommand() {
     $G.projectType === 'ios' ? 'Main/Pandora/apps' : 'app/src/main/assets/apps'
   )
 
-  console.log(embedAppsDir, 'embedAppsDir');
-
 
   emptyDirSync(embedAppsDir)
-  console.log(path.join(embedAppsDir, `${$G.manifest.appid}/www`),'path.join(embedAppsDir, `${$G.manifest.appid}/www`)');
-  
   sync(compiledDir, path.join(embedAppsDir, `${$G.manifest.appid}/www`))
   console.log(chalk.green('APP打包所需资源已更新'))
 }
