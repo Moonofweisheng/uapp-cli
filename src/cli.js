@@ -12,13 +12,21 @@ const fs = require('fs')
 const ora = require('ora')
 
 const path = require('path')
-const { execSync, spawnSync, spawn } = require('child_process')
+const {
+  execSync,
+  spawnSync,
+  spawn
+} = require('child_process')
 const tiged = require('@uappx/tiged')
 const chalk = require('chalk')
 const pkg = require('../package.json')
 const sync = require('./sync')
 const stripJsonComments = require('./stripJsonComments')
-const { emptyDirSync, removeSync, pathExistsSync } = require('fs-extra')
+const {
+  emptyDirSync,
+  removeSync,
+  pathExistsSync
+} = require('fs-extra')
 
 const knownOpts = {
   version: Boolean,
@@ -129,11 +137,13 @@ module.exports = function (inputArgs) {
 
     if (args.vue2) {
       // vue2 必须使用小写
-      let baseCommand = args.alpha
-        ? 'vue create -p dcloudio/uni-preset-vue#alpha '
-        : 'vue create -p dcloudio/uni-preset-vue '
+      let baseCommand = args.alpha ?
+        'vue create -p dcloudio/uni-preset-vue#alpha ' :
+        'vue create -p dcloudio/uni-preset-vue '
       try {
-        execSync(baseCommand + projectName.toLowerCase(), { stdio: 'inherit' })
+        execSync(baseCommand + projectName.toLowerCase(), {
+          stdio: 'inherit'
+        })
       } catch (error) {
         console.log('请先安装 vue 环境:')
         console.log('npm i -g @vue/cli')
@@ -146,7 +156,9 @@ module.exports = function (inputArgs) {
 
   // command: uapp sdk init
   if (cmd === 'sdk' && args.argv.remain[1] === 'init') {
-    sync(path.resolve(__dirname, '../uappsdk'), $G.sdkHomeDir, { delete: false })
+    sync(path.resolve(__dirname, '../uappsdk'), $G.sdkHomeDir, {
+      delete: false
+    })
     console.log(chalk.green('--- uappsdk 已安装 ---'))
     return
   }
@@ -192,12 +204,16 @@ module.exports = function (inputArgs) {
     console.log('需要输入两次6位密码, 例如输入密码: 123456\n')
 
     let keyFile = path.join($G.appDir, 'app/app.keystore')
-    fs.mkdirSync(path.dirname(keyFile), { recursive: true })
+    fs.mkdirSync(path.dirname(keyFile), {
+      recursive: true
+    })
 
     try {
       let keyCommand =
         'keytool -genkey -alias key0 -keyalg RSA -keysize 2048 -validity 36500 -dname "CN=uapp" -keystore ' + keyFile
-      execSync(keyCommand, { stdio: 'inherit' })
+      execSync(keyCommand, {
+        stdio: 'inherit'
+      })
       console.log('\n证书生成位置: ' + keyFile)
     } catch (error) {
       console.log('\n错误解决方法, 改名已存在的文件: ' + keyFile)
@@ -286,7 +302,9 @@ module.exports = function (inputArgs) {
       console.log('自定义命令为空，请参照文档中的 custom.command 配置')
     } else {
       command = command.replace(/\$\{SRC\}/g, $G.webAppDir)
-      execSync(command, { stdio: 'inherit' })
+      execSync(command, {
+        stdio: 'inherit'
+      })
     }
     return
   }
@@ -332,11 +350,15 @@ module.exports = function (inputArgs) {
       }
 
       let gradle = process.platform === 'win32' ? 'gradlew.bat' : './gradlew'
-      execSync(gradle + ` ${assembleTypeMap[buildType]} -s`, { stdio: 'inherit' })
+      execSync(gradle + ` ${assembleTypeMap[buildType]} -s`, {
+        stdio: 'inherit'
+      })
       let buildOutFile = path.join($G.appDir, 'app/build/outputs/', outFileMap[buildType])
 
       if (buildType === 'build:dev' && args.copy) {
-        sync(buildOutFile, path.join($G.webAppDir, 'dist/debug/android_debug.apk'), { delete: true })
+        sync(buildOutFile, path.join($G.webAppDir, 'dist/debug/android_debug.apk'), {
+          delete: true
+        })
       }
 
       console.log('\n编译成功，安装包位置: ')
@@ -351,7 +373,9 @@ module.exports = function (inputArgs) {
       }
 
       try {
-        execSync('xcodegen', { stdio: 'inherit' })
+        execSync('xcodegen', {
+          stdio: 'inherit'
+        })
       } catch (e) {
         console.log('请先安装 xcodegen, 可通过 brew install xcodegen 安装, 参考 iOS 配置文档: ')
         console.log('👉 https://gitee.com/uappkit/platform/blob/main/ios/README.md')
@@ -360,21 +384,24 @@ module.exports = function (inputArgs) {
 
       // gererate uapp_debug.xcarchive
       execSync(
-        'xcodebuild -project uapp.xcodeproj -destination "generic/platform=iOS" -scheme "HBuilder" -archivePath out/uapp_debug.xcarchive archive',
-        { stdio: 'inherit' }
+        'xcodebuild -project uapp.xcodeproj -destination "generic/platform=iOS" -scheme "HBuilder" -archivePath out/uapp_debug.xcarchive archive', {
+          stdio: 'inherit'
+        }
       )
 
       // generate ipa
       execSync(
-        'xcodebuild -exportArchive -archivePath out/uapp_debug.xcarchive -exportPath out -exportOptionsPlist config/export.plist',
-        { stdio: 'inherit' }
+        'xcodebuild -exportArchive -archivePath out/uapp_debug.xcarchive -exportPath out -exportOptionsPlist config/export.plist', {
+          stdio: 'inherit'
+        }
       )
 
       if (args.copy) {
         sync(
           path.join($G.appDir, 'out/HBuilder.ipa'),
-          path.join($G.webAppDir, 'unpackage/debug/ios_debug.ipa'),
-          { delete: true }
+          path.join($G.webAppDir, 'unpackage/debug/ios_debug.ipa'), {
+            delete: true
+          }
         )
       }
       return
@@ -396,7 +423,9 @@ module.exports = function (inputArgs) {
 function checkForUpdates() {
   try {
     // Checks for available update and returns an instance
-    const notifier = updateNotifier({ pkg: pkg })
+    const notifier = updateNotifier({
+      pkg: pkg
+    })
 
     if (notifier.update && notifier.update.latest !== pkg.version) {
       // Notify using the built-in convenience method
@@ -467,15 +496,15 @@ function prepareCommand() {
     buildWebApp('build:app-' + (Number($G.manifest.vueVersion) === 3 ? $G.projectType : 'plus'))
   }
 
-  let compiledDir = path.join($G.webAppDir, 'build/app-plus').replace('src','dist')
-  console.log(compiledDir,'compiledDir');
-  
+  let compiledDir = path.join($G.webAppDir, 'build/app-plus').replace('src', 'dist')
+  console.log(compiledDir, 'compiledDir');
+
   if (!pathExistsSync(compiledDir)) {
     console.log(chalk.red('找不到本地App打包资源'))
     console.log('请使用 HBuilderX => 发行(菜单) => 原生App本地打包 => 生成本地打包App资源')
     process.exit()
   }
-  let resDir = path.join($G.webAppDir, 'res/icons').replace('src','unpackage')
+  let resDir = path.join($G.webAppDir, 'res/icons').replace('src', 'unpackage')
   // 如果没生成过图标目录, 跳过
   if (pathExistsSync(resDir)) {
     if ($G.projectType === 'android') {
@@ -499,11 +528,11 @@ function prepareCommand() {
     $G.projectType === 'ios' ? 'Main/Pandora/apps' : 'app/src/main/assets/apps'
   )
 
-  console.log(embedAppsDir,'embedAppsDir');
-  
+  console.log(embedAppsDir, 'embedAppsDir');
+
 
   emptyDirSync(embedAppsDir)
-  sync(compiledDir, path.join(embedAppsDir, $G.manifest.appid))
+  sync(compiledDir, path.join(embedAppsDir, $G.manifest.appid, 'www'))
   console.log(chalk.green('APP打包所需资源已更新'))
 }
 
@@ -558,7 +587,9 @@ public class WXPayEntryActivity extends AbsWXPayCallbackActivity{
       entryFile
     )
 
-    fs.mkdirSync(path.dirname(replaceFile), { recursive: true })
+    fs.mkdirSync(path.dirname(replaceFile), {
+      recursive: true
+    })
     fs.writeFileSync(replaceFile, contentOfEntryFiles[entryFile])
   }
 
@@ -672,7 +703,9 @@ function updateIOSIcons(resDir) {
     if (['72x72.png', '96x96.png', '144x144.png', '192x192.png'].includes(file)) return
 
     const fullPath = path.join(resDir, file)
-    sync(fullPath, path.join($G.appDir, '/Main/Resources/Images.xcassets/AppIcon.appiconset/', file), { delete: true })
+    sync(fullPath, path.join($G.appDir, '/Main/Resources/Images.xcassets/AppIcon.appiconset/', file), {
+      delete: true
+    })
   })
 
   sync(path.join(resDir, '120x120.png'), path.join($G.appDir, 'Main/Resources/logo@2x.png'))
@@ -715,7 +748,9 @@ function printJWTToken() {
     }
 
     let privateKey = fs.readFileSync(path.join($G.appDir, 'jwt/key.txt'))
-    let headers = { kid: config.key_id }
+    let headers = {
+      kid: config.key_id
+    }
     let timestamp = Math.floor(Date.now() / 1000)
     let claims = {
       iss: config.team_id,
@@ -726,7 +761,10 @@ function printJWTToken() {
     }
 
     const jwt = require('jsonwebtoken')
-    let token = jwt.sign(claims, privateKey, { algorithm: 'ES256', header: headers })
+    let token = jwt.sign(claims, privateKey, {
+      algorithm: 'ES256',
+      header: headers
+    })
     console.log(token)
   } catch (error) {
     console.log(error.message + '\n')
@@ -752,7 +790,9 @@ function printAndroidKeyInfo(gradle) {
     console.log('签名文件错误: ' + r[1])
     console.log('问题可能因为创建 app.keystore 时使用的java版本和当前不一致，可更换java版本后再尝试')
     console.log('\n------ 当前java版本 ------')
-    return execSync('java -version', { stdio: 'inherit' })
+    return execSync('java -version', {
+      stdio: 'inherit'
+    })
   }
 
   r = output.match(/Variant: release[\s\S]+?----------/)
@@ -781,7 +821,9 @@ function buildWebApp(buildArg) {
   process.env.NODE_ENV = flag === 'build' ? 'production' : 'development'
 
   // spawnSync(`npm run ${buildArg}`)
-  spawnSync('npm', ['run', buildArg], { stdio: 'inherit'});
+  spawnSync('npm', ['run', buildArg], {
+    stdio: 'inherit'
+  });
   console.log('资源输出位置: ' + chalk.green(buildOutDir))
 }
 
@@ -803,7 +845,11 @@ function getDefaultBuildOut(buildArg) {
 function clone(url, projectName) {
   const spinner = ora()
   spinner.start('正在下载中，请稍后...')
-  tiged(url, { cache: true, force: false, verbose: true })
+  tiged(url, {
+      cache: true,
+      force: false,
+      verbose: true
+    })
     .on('info', info => {
       spinner.succeed(info.message)
     })
