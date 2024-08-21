@@ -499,6 +499,9 @@ function prepareCommand() {
     $G.projectType === 'ios' ? 'Main/Pandora/apps' : 'app/src/main/assets/apps'
   )
 
+  console.log(embedAppsDir,'embedAppsDir');
+  
+
   emptyDirSync(embedAppsDir)
   sync(compiledDir, path.join(embedAppsDir, $G.manifest.appid))
   console.log(chalk.green('APP打包所需资源已更新'))
