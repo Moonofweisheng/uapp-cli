@@ -467,7 +467,7 @@ function prepareCommand() {
     buildWebApp('build:app-' + (Number($G.manifest.vueVersion) === 3 ? $G.projectType : 'plus'))
   }
 
-  let compiledDir = path.join($G.webAppDir, 'dist/build/app-plus')
+  let compiledDir = path.join($G.webAppDir, 'build/app-plus').replace('src','dist')
   console.log(compiledDir,'compiledDir');
   
   if (!pathExistsSync(compiledDir)) {
