@@ -497,7 +497,6 @@ function prepareCommand() {
   }
 
   let compiledDir = path.join($G.webAppDir, 'build/app-plus').replace('src', 'dist')
-  console.log(compiledDir, 'compiledDir');
 
   if (!pathExistsSync(compiledDir)) {
     console.log(chalk.red('找不到本地App打包资源'))
@@ -532,7 +531,9 @@ function prepareCommand() {
 
 
   emptyDirSync(embedAppsDir)
-  sync(compiledDir, path.join(embedAppsDir, $G.manifest.appid, 'www'))
+  console.log(path.join(embedAppsDir, `${$G.manifest.appid}/www`),'path.join(embedAppsDir, `${$G.manifest.appid}/www`)');
+  
+  sync(compiledDir, path.join(embedAppsDir, `${$G.manifest.appid}/www`))
   console.log(chalk.green('APP打包所需资源已更新'))
 }
 
