@@ -538,9 +538,6 @@ function prepareCommand() {
  */
 
 function updateAndroidMetaData() {
-  let wxEntryActivityFile = 'WXEntryActivity.java'
-  let wXPayEntryActivityFile = 'WXPayEntryActivity.java'
-
   let baseGradleFile = path.join($G.appDir, 'app/build.gradle')
   let content = fs.readFileSync(baseGradleFile, 'utf-8')
 
@@ -560,35 +557,6 @@ function updateAndroidMetaData() {
     '$1' + $G.manifest['app-plus'].distribute.sdkConfigs.oauth.weixin.appsecret + '$3'
   )
   fs.writeFileSync(baseGradleFile, content)
-
-  // DONT change content here
-  let contentOfEntryFiles = {
-    [wxEntryActivityFile]: `package ${$G.manifest.uapp.package}.wxapi;
-import io.dcloud.feature.oauth.weixin.AbsWXCallbackActivity;
-public class WXEntryActivity extends AbsWXCallbackActivity {
-}
-`,
-    [wXPayEntryActivityFile]: `package ${$G.manifest.uapp.package}.wxapi;
-import io.dcloud.feature.payment.weixin.AbsWXPayCallbackActivity;
-public class WXPayEntryActivity extends AbsWXPayCallbackActivity{
-}
-`
-  }
-
-  for (const entryFile of [wxEntryActivityFile, wXPayEntryActivityFile]) {
-    let replaceFile = path.join(
-      $G.appDir,
-      'app/src/main/java/',
-      $G.manifest.uapp.package.replace(/\./g, '/'),
-      'wxapi',
-      entryFile
-    )
-
-    fs.mkdirSync(path.dirname(replaceFile), {
-      recursive: true
-    })
-    fs.writeFileSync(replaceFile, contentOfEntryFiles[entryFile])
-  }
 
   replaceControlXml(path.join($G.appDir, 'app/src/debug/assets/data/dcloud_control.xml'))
   replaceControlXml(path.join($G.appDir, 'app/src/main/assets/data/dcloud_control.xml'))
