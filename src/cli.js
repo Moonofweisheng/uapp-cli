@@ -349,7 +349,7 @@ module.exports = function (inputArgs) {
         'build:aab': 'bundle/release/app-release.aab',
       }
 
-      let gradle = process.platform === 'win32' ? 'gradlew.bat' : './gradlew'
+      let gradle = process.platform === 'win32' ? 'gradlew.bat' : 'chmod +x ./gradlew'
       execSync(gradle + ` ${assembleTypeMap[buildType]} -s`, {
         stdio: 'inherit'
       })
