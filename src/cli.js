@@ -270,6 +270,7 @@ module.exports = function (inputArgs) {
         console.log(buildOutFile);
         return;
       }
+      return
     }
 
     if ($G.projectType === 'ios') {
