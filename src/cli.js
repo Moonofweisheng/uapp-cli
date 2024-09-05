@@ -548,15 +548,6 @@ function updateAndroidMetaData() {
     .replace(/storeFile file\('.*'\)/, "storeFile file('" + $G.manifest.uapp.storeFile + "')")
     .replace(/storePassword '.*'/, "storePassword '" + $G.manifest.uapp.keyPassword + "'");
 
-  content = content.replace(
-    /("WX_APPID"\s+:\s+")(.*)(",)/,
-    '$1' + $G.manifest['app-plus'].distribute.sdkConfigs.oauth.weixin.appid + '$3'
-  )
-
-  content = content.replace(
-    /("WX_SECRET"\s+:\s+")(.*)(",)/,
-    '$1' + $G.manifest['app-plus'].distribute.sdkConfigs.oauth.weixin.appsecret + '$3'
-  )
   fs.writeFileSync(baseGradleFile, content)
 
   replaceControlXml(path.join($G.appDir, 'app/src/debug/assets/data/dcloud_control.xml'))
