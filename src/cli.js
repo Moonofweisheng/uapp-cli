@@ -547,6 +547,11 @@ function updateAndroidMetaData() {
   content = content.replace(/(versionName\s+")(.*)(")/, '$1' + $G.manifest.uapp.versionName + '$3')
   content = content.replace(/("DCLOUD_APPKEY"\s+:\s+")(.*)(",)/, '$1' + $G.manifest.uapp.appkey + '$3')
 
+  content = content.replace(/keyAlias '.*'/, "keyAlias '" +  $G.manifest.uapp.keyAlias + "'")
+  .replace(/keyPassword '.*'/, "keyPassword '" + $G.manifest.uapp.KeyPassword + "'")
+  .replace(/storeFile file\('.*'\)/, "storeFile file('" + $G.manifest.uapp.storeFile + "')")
+  .replace(/storePassword '.*'/, "storePassword '" + $G.manifest.uapp.KeyPassword + "'");
+
   content = content.replace(
     /("WX_APPID"\s+:\s+")(.*)(",)/,
     '$1' + $G.manifest['app-plus'].distribute.sdkConfigs.oauth.weixin.appid + '$3'
