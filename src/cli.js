@@ -224,28 +224,52 @@ module.exports = function (inputArgs) {
         'build:dev': 'assembleDebug',
         'build:aab': 'bundleRelease',
       }
-
+    
       let outFileMap = {
         'build': 'apk/release/app-release.apk',
         'build:dev': 'apk/debug/app-debug.apk',
         'build:aab': 'bundle/release/app-release.aab',
       }
-
-      let gradle = process.platform === 'win32' ? 'gradlew.bat' : 'chmod +x ./gradlew'
-      execSync(gradle + ` ${assembleTypeMap[buildType]} -s`, {
-        stdio: 'inherit'
-      })
-      let buildOutFile = path.join($G.appDir, 'app/build/outputs/', outFileMap[buildType])
-
-      if (buildType === 'build:dev' && args.copy) {
-        sync(buildOutFile, path.join($G.webAppDir, 'debug/android_debug.apk').replace('src', 'dist'), {
-          delete: true
-        })
+    
+      let gradle = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
+      
+      // 检查并修改 gradlew 文件权限
+      fs.access(gradle, fs.constants.X_OK, (err) => {
+        if (err) {
+          // 文件没有执行权限，修改权限
+          fs.chmod(gradle, 0o755, (chmodErr) => {
+            if (chmodErr) {
+              console.error('Failed to change file permission:', chmodErr);
+              return;
+            }
+    
+            console.log('File permission changed successfully.');
+            
+            // 执行 ./gradlew
+            execGradlew();
+          });
+        } else {
+          // 文件已有执行权限，直接执行 ./gradlew
+          execGradlew();
+        }
+      });
+    
+      // 执行 ./gradlew
+      function execGradlew() {
+        execSync(gradle + ` ${assembleTypeMap[buildType]} -s`, { stdio: 'inherit' });
+    
+        let buildOutFile = path.join($G.appDir, 'app/build/outputs/', outFileMap[buildType]);
+    
+        if (buildType === 'build:dev' && args.copy) {
+          sync(buildOutFile, path.join($G.webAppDir, 'debug/android_debug.apk').replace('src', 'dist'), {
+            delete: true
+          });
+        }
+    
+        console.log('\n编译成功，安装包位置: ');
+        console.log(buildOutFile);
+        return;
       }
-
-      console.log('\n编译成功，安装包位置: ')
-      console.log(buildOutFile)
-      return
     }
 
     if ($G.projectType === 'ios') {
