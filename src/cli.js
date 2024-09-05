@@ -450,8 +450,6 @@ function checkManifest() {
 
 function loadManifest() {
   checkManifest()
-  console.log('当前使用 manifest: ' + $G.localLinkManifest)
-
   if (fs.existsSync($G.localLinkManifest)) {
     let content = fs.readFileSync($G.localLinkManifest, 'utf8')
     $G.manifest = JSON.parse(stripJsonComments(content))
@@ -486,9 +484,6 @@ function loadManifest() {
   $G.manifest.uapp.versionName = $G.manifest.uapp[`${$G.projectType}.versionName`] || $G.manifest.versionName
   $G.manifest.uapp.versionCode = $G.manifest.uapp[`${$G.projectType}.versionCode`] || $G.manifest.versionCode
   $G.manifest.uapp.appkey = $G.manifest.uapp[`${$G.projectType}.appkey`]
-
-  // 缺失的参数，默认使用模版里的
-  $G.manifest = _.merge(require($G.sdkHomeDir + '/templates/manifest.json'), $G.manifest)
 }
 
 function prepareCommand() {
