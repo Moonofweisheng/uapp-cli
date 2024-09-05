@@ -1,10 +1,3 @@
-/**
- * Author: Yin Qisen <yinqisen@gmail.com>
- * Github: https://github.com/uappkit
- *
- * Copyright(c) 2022 - 2024, uapp.dev
- */
-
 const _ = require('lodash')
 const nopt = require('nopt')
 const updateNotifier = require('update-notifier')
@@ -128,54 +121,6 @@ module.exports = function (inputArgs) {
     $G.localLinkManifest = path.join(process.cwd(), 'src/manifest.json')
   }
 
-  // command: uapp new
-  if (cmd === 'new') {
-    let projectName = args.argv.remain[1]
-    if (!projectName) {
-      return console.log('缺少参数名，例如: uapp new project1')
-    }
-
-    if (args.vue2) {
-      // vue2 必须使用小写
-      let baseCommand = args.alpha ?
-        'vue create -p dcloudio/uni-preset-vue#alpha ' :
-        'vue create -p dcloudio/uni-preset-vue '
-      try {
-        execSync(baseCommand + projectName.toLowerCase(), {
-          stdio: 'inherit'
-        })
-      } catch (error) {
-        console.log('请先安装 vue 环境:')
-        console.log('npm i -g @vue/cli')
-      }
-    } else {
-      clone(`https://gitee.com/uappkit/platform.git/src/#main`, projectName)
-    }
-    return
-  }
-
-  // command: uapp sdk init
-  if (cmd === 'sdk' && args.argv.remain[1] === 'init') {
-    sync(path.resolve(__dirname, '../uappsdk'), $G.sdkHomeDir, {
-      delete: false
-    })
-    console.log(chalk.green('--- uappsdk 已安装 ---'))
-    return
-  }
-
-  // command: uapp add ${platform}
-  // support platforms: android, ios
-  if (cmd === 'add') {
-    let platform = args.argv.remain[1]
-    let supportPlatform = ['android', 'ios']
-    if (!supportPlatform.includes(platform)) {
-      console.log(`不支持平台 ${platform}, 当前支持的平台有: ${supportPlatform.join(', ')}`)
-      return
-    }
-
-    return clone(`https://gitee.com/uappkit/platform.git/${platform}#main`, platform)
-  }
-
   /*
   |--------------------------------------------------------------------------
   | 命令分水岭
@@ -195,32 +140,6 @@ module.exports = function (inputArgs) {
     return console.log('webapp 不支持命令 uapp ' + cmd)
   }
 
-  // command: uapp keygen
-  if (cmd === 'keygen') {
-    if ($G.projectType === 'android') {
-      console.log('注意: ')
-      console.log('build.gradle 中密码默认为 123456, 如有修改为其他密码，请对应修改 build.gradle 中的配置')
-    }
-    console.log('需要输入两次6位密码, 例如输入密码: 123456\n')
-
-    let keyFile = path.join($G.appDir, 'app/app.keystore')
-    fs.mkdirSync(path.dirname(keyFile), {
-      recursive: true
-    })
-
-    try {
-      let keyCommand =
-        'keytool -genkey -alias key0 -keyalg RSA -keysize 2048 -validity 36500 -dname "CN=uapp" -keystore ' + keyFile
-      execSync(keyCommand, {
-        stdio: 'inherit'
-      })
-      console.log('\n证书生成位置: ' + keyFile)
-    } catch (error) {
-      console.log('\n错误解决方法, 改名已存在的文件: ' + keyFile)
-    }
-
-    return
-  }
 
   // command:
   // uapp manifest path/to/manifest.json
@@ -262,33 +181,6 @@ module.exports = function (inputArgs) {
   loadManifest()
   $G.webAppDir = path.dirname(fs.realpathSync($G.localLinkManifest))
 
-  // command: uapp info, uapp info jwt, uapp info key
-  if (cmd === 'info' && (!args.argv.remain[1] || args.argv.remain[1] === 'jwt' || args.argv.remain[1] === 'key')) {
-    printManifestInfo()
-
-    if (($G.projectType === 'ios' && !args.argv.remain[1]) || args.argv.remain[1] === 'jwt') {
-      printJWTToken()
-      return
-    }
-
-    if ($G.projectType === 'android') {
-      let keyFile = path.join($G.appDir, 'app/app.keystore')
-      if (!fs.existsSync(keyFile)) {
-        console.log('找不到 keystore 签名文件: ' + keyFile)
-        return
-      }
-
-      let gradle = process.platform === 'win32' ? 'gradlew.bat' : './gradlew'
-      if (!fs.existsSync(path.resolve(gradle))) {
-        console.log('找不到 gradle 命令: ' + gradle)
-        return
-      }
-
-      printAndroidKeyInfo(gradle)
-      return
-    }
-  }
-
   // command: uapp prepare
   if (cmd === 'prepare') {
     prepareCommand()
@@ -316,16 +208,6 @@ module.exports = function (inputArgs) {
   // uapp run build:dev { --no-copy | 不复制到 hbx 自定义基座 }
   if (cmd === 'run') {
     console.log('当前工程类型为 ' + chalk.yellow($G.projectType))
-
-    // webapp 支持 dev:xxx, build:xxx
-    if ($G.projectType === 'webapp') {
-      let [a, b] = args.argv.remain[1].split(':')
-      if (!['build', 'dev'].includes(a) || !b) {
-        return console.log('命令无效，webapp 仅支持 uapp run build:xxx / dev:xxx')
-      }
-
-      return buildWebApp('build:app-' + (Number($G.manifest.vueVersion) === 3 ? $G.projectType : 'plus'))
-    }
 
     if (!['build', 'build:dev', 'build:aab'].includes(args.argv.remain[1])) {
       return console.log('命令无效，app 仅支持 uapp run build / build:dev / build:aab')
@@ -487,10 +369,6 @@ function loadManifest() {
 }
 
 function prepareCommand() {
-  if ($G.args.webapp) {
-    buildWebApp('build:app-' + (Number($G.manifest.vueVersion) === 3 ? $G.projectType : 'plus'))
-  }
-
   let compiledDir = path.join($G.webAppDir, Number($G.manifest.vueVersion) === 3 ? 'build/app' : 'build/app-plus').replace('src', 'dist')
 
   if (!pathExistsSync(compiledDir)) {
